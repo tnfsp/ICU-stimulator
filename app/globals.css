@@ -1,0 +1,23 @@
+:root {
+  --bg: #0b1017;
+  --panel: #111823;
+  --panel-2: #151e2b;
+  --monitor: #0d151e;
+  --monitor-grid: #0f1c2a;
+  --primary: #2ee8a2;
+  --accent: #f0c94d;
+  --danger: #ff6b6b;
+  --muted: #8aa2be;
+  --text: #e7eef5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(120% 120% at 20% 20%, #101827 0%, #0b1017 45%, #080b10 100%);
+  color: var(--text);
+  font-family: "Space Grotesk", "Share Tech Mono", system-ui, sans-serif;
+}

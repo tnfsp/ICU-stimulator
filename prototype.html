@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICU PIXEL BOARD — 靜態原型</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1017;
+      --panel: #111823;
+      --panel-2: #151e2b;
+      --monitor: #0d151e;
+      --monitor-grid: #0f1c2a;
+      --primary: #2ee8a2;
+      --accent: #f0c94d;
+      --danger: #ff6b6b;
+      --muted: #8aa2be;
+      --text: #e7eef5;
+      --shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(120% 120% at 20% 20%, #101827 0%, #0b1017 45%, #080b10 100%);
+      color: var(--text);
+      font-family: "Space Grotesk", "Share Tech Mono", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid #1b2635;
+      background: linear-gradient(90deg, rgba(46, 232, 162, 0.14), rgba(240, 201, 77, 0.08));
+      box-shadow: var(--shadow);
+    }
+    .title { font-family: "Press Start 2P", monospace; font-size: 14px; letter-spacing: 0.8px; }
+    .pill {
+      padding: 6px 10px; border-radius: 10px; background: #0f1a26; border: 1px solid #203042;
+      color: var(--muted); font-size: 12px;
+    }
+    .pill.danger { color: var(--danger); border-color: rgba(255, 107, 107, 0.5); }
+    .grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; padding: 14px 18px 24px; }
+    .panel { background: var(--panel); border: 1px solid #1b2635; border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); }
+    .panel h3 { margin: 0 0 10px; font-family: "Press Start 2P", monospace; font-size: 12px; letter-spacing: 0.4px; display: flex; align-items: center; gap: 8px; }
+    .patient-block { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: start; }
+    .pixel-patient { background: repeating-linear-gradient(45deg, #1b2435 0, #1b2435 6px, #121a28 6px, #121a28 12px); border: 1px solid #202c3d; border-radius: 10px; height: 200px; position: relative; box-shadow: inset 0 0 0 2px #0c121c; }
+    .pixel-patient::before { content: ""; position: absolute; inset: 30px 40px 30px 40px; background: linear-gradient(#303f59, #1f2a3d); clip-path: polygon(50% 0%, 65% 15%, 65% 35%, 80% 50%, 65% 65%, 65% 90%, 50% 100%, 35% 90%, 35% 65%, 20% 50%, 35% 35%, 35% 15%); image-rendering: pixelated; box-shadow: 0 0 0 6px #0f1622; }
+    .pixel-label { position: absolute; bottom: 6px; left: 8px; background: rgba(0,0,0,0.55); padding: 4px 6px; font-family: "Press Start 2P", monospace; font-size: 9px; color: var(--accent); border: 1px solid #28374c; }
+    .monitor { background: var(--monitor); border: 1px solid #1c293a; border-radius: 12px; padding: 10px; position: relative; overflow: hidden; box-shadow: inset 0 0 0 2px #0f1621; }
+    .monitor::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 3px); mix-blend-mode: screen; pointer-events: none; }
+    .monitor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .monitor-tile { background: var(--monitor-grid); border: 1px solid #1e2d3f; border-radius: 8px; padding: 8px; font-family: "Share Tech Mono", monospace; color: #2ee8a2; text-shadow: 0 0 6px rgba(46, 232, 162, 0.6); min-height: 60px; }
+    .monitor-label { font-size: 11px; color: #7fc7ff; display: flex; justify-content: space-between; }
+    .monitor-value { font-size: 18px; margin-top: 4px; letter-spacing: 0.4px; }
+    .monitor-alert { color: var(--danger); }
+    .support { margin-top: 8px; background: var(--panel-2); border: 1px solid #1f2d40; border-radius: 10px; padding: 8px 10px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+    .support strong { color: var(--text); }
+    .order-board { display: flex; flex-direction: column; gap: 10px; }
+    .order-section { background: var(--panel-2); border: 1px solid #223146; border-radius: 12px; overflow: hidden; }
+    .order-section header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; }
+    .order-section h4 { margin: 0; font-family: "Press Start 2P", monospace; font-size: 11px; letter-spacing: 0.3px; }
+    .order-section button.toggle { background: transparent; border: 1px solid #2a394e; color: var(--muted); border-radius: 8px; padding: 4px 8px; cursor: pointer; }
+    .order-items { padding: 10px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+    .order-btn { width: 100%; text-align: left; background: linear-gradient(120deg, rgba(46, 232, 162, 0.18), rgba(46, 232, 162, 0.08)); border: 1px solid rgba(46, 232, 162, 0.5); color: var(--text); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: transform 0.08s ease, box-shadow 0.2s ease; }
+    .order-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
+    .order-meta { color: var(--muted); font-size: 11px; margin-top: 4px; line-height: 1.4; }
+    .log { max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 6px; }
+    .log-entry { background: var(--panel-2); border: 1px solid #223146; border-radius: 10px; padding: 8px 10px; display: flex; gap: 8px; align-items: baseline; }
+    .tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; border: 1px solid #2a394e; }
+    .tag.warn { color: var(--accent); border-color: rgba(240,201,77,0.5); }
+    .tag.info { color: var(--accent); border-color: rgba(240,201,77,0.5); }
+    .tag.good { color: var(--primary); border-color: rgba(46,232,162,0.5); }
+    .pocu-box { background: var(--panel-2); border: 1px solid #223146; border-radius: 12px; padding: 10px; margin-top: 8px; font-family: "Share Tech Mono", monospace; color: var(--text); }
+    .pocu-box.hidden { display: none; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 10; backdrop-filter: blur(2px); }
+    .modal { background: #0f1622; border: 1px solid #223146; border-radius: 14px; width: min(520px, 92vw); box-shadow: var(--shadow); padding: 14px 16px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-family: "Press Start 2P", monospace; font-size: 12px; letter-spacing: 0.3px; }
+    .modal-close { background: transparent; border: 1px solid #2a394e; color: var(--muted); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+    .modal-body { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow: auto; }
+    .modal-body.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    .modal-note { width: 100%; background: #0c121b; border: 1px solid #243246; border-radius: 10px; color: var(--text); padding: 10px; font-family: "Share Tech Mono", monospace; min-height: 80px; }
+    .modal-row { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .check-row { display: flex; gap: 10px; align-items: flex-start; background: var(--panel-2); border: 1px solid #223146; border-radius: 10px; padding: 8px 10px; }
+    .modal-submit { margin-top: 12px; width: 100%; background: linear-gradient(120deg, rgba(46, 232, 162, 0.22), rgba(46, 232, 162, 0.12)); border: 1px solid rgba(46, 232, 162, 0.6); color: var(--text); padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } .patient-block { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">ICU PIXEL BOARD</div>
+    <div class="pill">患者：ICU-000</div>
+    <div class="pill danger">狀態：心因性休克（偽裝敗血症）</div>
+    <div class="pill">入院：+12h post PCI</div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>病人面板 / MONITOR</h3>
+      <div class="patient-block">
+        <div class="pixel-patient"><div class="pixel-label">PATIENT</div></div>
+        <div class="monitor">
+          <div class="monitor-grid" id="monitor"></div>
+          <div class="support" id="support">
+            <div><strong>循環</strong>：Norepi 0.05 μg/kg/min（低劑量），尚未上強心劑。</div>
+            <div><strong>呼吸</strong>：4L NC；FiO2 0.36（暫不插管）。</div>
+            <div><strong>通氣設定</strong>：未接呼吸器（可考慮 NIV / 氣管插管）。</div>
+            <div><strong>輸液/入量</strong>：過去 3h 無大補液，尿量 15 mL/h。</div>
+          </div>
+        </div>
+      </div>
+      <div class="pocu-box hidden" id="pocus">POCUS 更新：RV 擴大/收縮差，IVC 大且僵直；LV 中度差。</div>
+    </div>
+
+    <div class="panel">
+      <h3>ORDERS / 決策</h3>
+      <div class="order-board" id="orders"></div>
+      <div class="pocu-box" id="order-detail">已送出的醫囑會顯示在這裡。</div>
+    </div>
+
+    <div class="panel">
+      <h3>事件紀錄</h3>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="panel">
+      <h3>結果訊息板</h3>
+      <div class="log" id="results-log"></div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="order-modal">
+    <div class="modal" id="modal-panel">
+      <div class="modal-header">
+        <span id="modal-title">開立醫囑</span>
+        <button class="modal-close" id="modal-close">關閉</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <button class="modal-submit" id="modal-submit">送出醫囑</button>
+    </div>
+  </div>
+  <div class="modal-overlay" id="vent-modal" style="display:none;">
+    <div class="modal" style="width:min(560px,92vw);">
+      <div class="modal-header">
+        <span>呼吸器設定</span>
+        <button class="modal-close" id="vent-close">關閉</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-row">FiO2: <input id="vent-fio2" type="range" min="30" max="100" step="5" value="50"> <span id="vent-fio2-val">50%</span></div>
+        <div class="modal-row">PEEP: <input id="vent-peep" type="range" min="5" max="12" step="1" value="5"> <span id="vent-peep-val">5</span></div>
+        <div class="modal-row">RR: <input id="vent-rr" type="range" min="10" max="24" step="1" value="16"> <span id="vent-rr-val">16</span></div>
+        <div class="modal-row">潮氣量 (ml/kg): <input id="vent-vt" type="range" min="4" max="8" step="0.5" value="6"> <span id="vent-vt-val">6</span></div>
+      </div>
+      <button class="modal-submit" id="vent-save">套用設定</button>
+    </div>
+  </div>
+  <div class="modal-overlay" id="pressor-modal" style="display:none;">
+    <div class="modal" style="width:min(420px,90vw);">
+      <div class="modal-header">
+        <span id="pressor-title">升壓劑滴數</span>
+        <button class="modal-close" id="pressor-close">關閉</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-row">滴速: <input id="pressor-rate" type="range" min="0" max="0.3" step="0.01" value="0.05"> <span id="pressor-rate-val">0.05 μg/kg/min</span></div>
+      </div>
+      <button class="modal-submit" id="pressor-save">送出</button>
+    </div>
+  </div>
+  <div class="modal-overlay" id="abx-modal" style="display:none;">
+    <div class="modal" style="width:min(520px,92vw);">
+      <div class="modal-header">
+        <span>抗生素選擇</span>
+        <button class="modal-close" id="abx-close">關閉</button>
+      </div>
+      <div class="modal-body" id="abx-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+        <label class="check-row"><input type="radio" name="abx" value="Cefazolin"><div><div style="font-weight:700;">Cefazolin</div><div class="order-meta">第一代，軟組織/泌尿</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Cefoxitin"><div><div style="font-weight:700;">Cefoxitin</div><div class="order-meta">第二代，厭氧涵蓋</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Ceftriaxone"><div><div style="font-weight:700;">Ceftriaxone</div><div class="order-meta">第三代，社區型覆蓋</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Ceftazidime"><div><div style="font-weight:700;">Ceftazidime</div><div class="order-meta">第三代，抗綠</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Cefepime"><div><div style="font-weight:700;">Cefepime</div><div class="order-meta">第四代，抗綠膿桿菌</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Pip/Tazo"><div><div style="font-weight:700;">Pip/Tazo</div><div class="order-meta">抗假單胞、厭氧</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Meropenem"><div><div style="font-weight:700;">Meropenem</div><div class="order-meta">廣譜，抗 ESBL</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Amp/Sulbactam"><div><div style="font-weight:700;">Amp/Sulbactam</div><div class="order-meta">社區型，厭氧</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Levofloxacin"><div><div style="font-weight:700;">Levofloxacin</div><div class="order-meta">呼吸道涵蓋，抗綠可調</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Colistin"><div><div style="font-weight:700;">Colistin</div><div class="order-meta">多重抗藥覆蓋</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Linezolid"><div><div style="font-weight:700;">Linezolid</div><div class="order-meta">MRSA 覆蓋</div></div></label>
+        <label class="check-row"><input type="radio" name="abx" value="Vancomycin"><div><div style="font-weight:700;">Vancomycin</div><div class="order-meta">MRSA 覆蓋</div></div></label>
+      </div>
+      <div class="modal-body">
+        <div class="order-meta" style="margin-bottom:6px;">備註（可留白）</div>
+        <textarea class="modal-note" id="abx-note" placeholder="例：懷疑肺部來源，需 MRSA 覆蓋"></textarea>
+      </div>
+      <button class="modal-submit" id="abx-save">送出</button>
+    </div>
+  </div>
+
+  <script>
+    // Dummy state for static demo
+    const monitorEl = document.getElementById("monitor");
+    const supportEl = document.getElementById("support");
+    const orderBoard = document.getElementById("orders");
+    const orderDetail = document.getElementById("order-detail");
+    const logEl = document.getElementById("log");
+    const resultsEl = document.getElementById("results-log");
+    const pocusEl = document.getElementById("pocus");
+    const orderModal = document.getElementById("order-modal");
+    const modalPanel = document.getElementById("modal-panel");
+    const modalTitle = document.getElementById("modal-title");
+    const modalBody = document.getElementById("modal-body");
+    const modalSubmit = document.getElementById("modal-submit");
+    const modalClose = document.getElementById("modal-close");
+    const ventModal = document.getElementById("vent-modal");
+    const ventClose = document.getElementById("vent-close");
+    const ventFio2 = document.getElementById("vent-fio2");
+    const ventFio2Val = document.getElementById("vent-fio2-val");
+    const ventPeep = document.getElementById("vent-peep");
+    const ventPeepVal = document.getElementById("vent-peep-val");
+    const ventRr = document.getElementById("vent-rr");
+    const ventRrVal = document.getElementById("vent-rr-val");
+    const ventVt = document.getElementById("vent-vt");
+    const ventVtVal = document.getElementById("vent-vt-val");
+    const ventSave = document.getElementById("vent-save");
+    const pressorModal = document.getElementById("pressor-modal");
+    const pressorClose = document.getElementById("pressor-close");
+    const pressorTitle = document.getElementById("pressor-title");
+    const pressorRate = document.getElementById("pressor-rate");
+    const pressorRateVal = document.getElementById("pressor-rate-val");
+    const pressorSave = document.getElementById("pressor-save");
+    const abxModal = document.getElementById("abx-modal");
+    const abxClose = document.getElementById("abx-close");
+    const abxSave = document.getElementById("abx-save");
+
+    const state = {
+      vitals: { sbp: 88, dbp: 52, map: 62, hr: 112, spo2: 91, temp: 38.6, rr: 26 },
+      support: { pressor: "Norepi 0.05 μg/kg/min", inotrope: "尚未使用", o2: "4L 鼻導管", vent: null, fluids: "近3小時無大補液，尿量 15 mL/h" },
+      log: [
+        { tag: "info", text: "初始：BP 88/52 (MAP 62)、HR 112、SpO2 91% (4L NC)、Temp 38.6、RR 26。" },
+        { tag: "warn", text: "皮膚溫熱、JVP 高，肺濕音。" },
+      ],
+      results: [],
+    };
+
+    const monitorConfig = [
+      { key: "bp", label: "BP", unit: "mmHg", alert: (v) => v.map < 65, format: (v) => `${v.sbp}/${v.dbp} (MAP ${v.map})` },
+      { key: "hr", label: "HR", unit: "bpm", alert: (v) => v > 110 },
+      { key: "spo2", label: "SpO2", unit: "%", alert: (v) => v < 92 },
+      { key: "temp", label: "Temp", unit: "°C", alert: (v) => v > 38.3 },
+      { key: "rr", label: "RR", unit: "/min", alert: (v) => v > 24 },
+    ];
+
+    const ordersData = [
+      { title: "詢問 / HISTORY", items: [
+        { label: "問護理師：輸入/輸出、症狀變化", desc: "尿量 15 mL/h，越來越喘，血壓緩跌。" },
+        { label: "問病人：胸痛/胸悶/頭暈", desc: "胸悶、吸氣就頭暈，躺平喘。" },
+        { label: "查看 I/O 紀錄", desc: "近 6h 入出量" },
+      ]},
+      { title: "抽血 / LAB", lab: true },
+      { title: "影像 / IMAGING", items: [
+        { label: "CXR 床邊", desc: "肺水腫 + 右下葉浸潤。" },
+        { label: "CT 胸 (考慮)", desc: "目前不穩，先不搬動。" },
+      ]},
+      { title: "床邊超音波", items: [
+        { label: "A4C", desc: "Apical 4-chamber" },
+        { label: "PLAX", desc: "Parasternal long axis" },
+        { label: "PSAX", desc: "Parasternal short axis" },
+        { label: "IVC 視野", desc: "IVC 直徑/塌陷度" },
+        { label: "Lung zone 前/側", desc: "肺 B-line/實變" },
+      ]},
+      { title: "呼吸/呼吸器", items: [
+        { label: "鼻導管 2-4 L", desc: "低流量 O2" },
+        { label: "Simple mask 6-8 L", desc: "中等流量" },
+        { label: "Venturi 40%", desc: "控制 FiO2" },
+        { label: "NRM 12-15 L", desc: "高流量面罩" },
+        { label: "BiPAP 12/6 FiO2 60%", desc: "無創雙相" },
+        { label: "插管並設定呼吸器", desc: "進入設定頁面" },
+      ]},
+      { title: "用藥 / 升壓強心", items: [
+        { label: "Norepi 滴數", desc: "0–0.3 μg/kg/min", type: "pressor", agent: "Norepi" },
+        { label: "Epinephrine 滴數", desc: "0–0.3 μg/kg/min", type: "pressor", agent: "Epinephrine" },
+        { label: "Vasopressin 滴數", desc: "0–0.06 u/min", type: "pressor", agent: "Vasopressin" },
+        { label: "Dobutamine 滴數", desc: "0–10 μg/kg/min", type: "pressor", agent: "Dobutamine" },
+        { label: "Milrinone 滴數", desc: "0–0.75 μg/kg/min", type: "pressor", agent: "Milrinone" },
+        { label: "NTG 5 mcg/min", desc: "前負荷/後負荷下降" },
+        { label: "Furosemide 20 mg IV", desc: "利尿" },
+        { label: "廣譜抗生素", desc: "抗感染覆蓋", type: "abx" },
+        { label: "大補液 500 mL", desc: "高風險：RV overload。" },
+      ]},
+    ];
+
+    function renderMonitor() {
+      monitorEl.innerHTML = monitorConfig.map(cfg => {
+        const val = cfg.key === "bp" ? state.vitals : state.vitals[cfg.key];
+        const alert = cfg.alert(val);
+        const display = cfg.format ? cfg.format(val) : val;
+        return `
+          <div class="monitor-tile">
+            <div class="monitor-label"><span>${cfg.label}</span><span>${cfg.unit}</span></div>
+            <div class="monitor-value ${alert ? "monitor-alert" : ""}">${display}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderSupport() {
+      supportEl.innerHTML = `
+        <div><strong>循環</strong>：${state.support.pressor}；強心：${state.support.inotrope}。</div>
+        <div><strong>呼吸</strong>：${state.support.o2}。</div>
+        <div><strong>通氣設定</strong>：${state.support.vent ? `${state.support.vent.mode} / Vt ${state.support.vent.tv} / RR ${state.support.vent.rr} / PEEP ${state.support.vent.peep} / FiO2 ${state.support.vent.fio2}` : "未接呼吸器"}</div>
+        <div><strong>輸液/入量</strong>：${state.support.fluids}</div>
+      `;
+    }
+
+    function renderLog() {
+      logEl.innerHTML = state.log.map(entry => {
+        const tagClass = entry.tag === "warn" ? "warn" : entry.tag === "good" ? "good" : "info";
+        return `<div class="log-entry"><div class="tag ${tagClass}">${tagLabel(tagClass)}</div><div>${entry.text}</div></div>`;
+      }).join("");
+    }
+
+    function renderResults() {
+      resultsEl.innerHTML = state.results.map(text => `<div class="log-entry"><div class="tag info">結果</div><div>${text}</div></div>`).join("");
+    }
+
+    function renderOrders() {
+      orderBoard.innerHTML = ordersData.map((group, idx) => {
+        const body = group.lab
+          ? `<button class="order-btn" data-group="${idx}" data-lab="true">開立抽血<div class="order-meta">選取多項實驗一次送出</div></button>`
+          : group.items.map((item, i) => `
+              <button class="order-btn" data-group="${idx}" data-item="${i}">
+                ${item.label}
+                <div class="order-meta">${item.desc}</div>
+              </button>
+            `).join("");
+        return `
+          <div class="order-section" data-group="${idx}">
+            <header><h4>${group.title}</h4><button class="toggle" data-group="${idx}">展開</button></header>
+            <div class="order-items" data-body="${idx}" style="display:none;">${body}</div>
+          </div>
+        `;
+      }).join("");
+
+      orderBoard.querySelectorAll(".toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const g = btn.dataset.group;
+          const body = orderBoard.querySelector(`[data-body="${g}"]`);
+          const isOpen = body.style.display === "grid";
+          body.style.display = isOpen ? "none" : "grid";
+          btn.textContent = isOpen ? "展開" : "收合";
+        });
+      });
+      orderBoard.querySelectorAll(".order-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const g = Number(btn.dataset.group);
+          if (btn.dataset.lab === "true") { openLabModal(); return; }
+          const item = ordersData[g].items[Number(btn.dataset.item)];
+          if (item.type === "pressor") { openPressorModal(item.agent); return; }
+          if (item.type === "abx") { openAbxModal(); return; }
+          if (item.label === "插管並設定呼吸器") { openVentModal(); return; }
+          // generic log
+          addLog("info", `已執行：${item.label}`);
+          orderDetail.textContent = `${ordersData[g].title} → ${item.label}`;
+        });
+      });
+    }
+
+    function tagLabel(tag) {
+      if (tag === "warn") return "紀錄";
+      if (tag === "good") return "改善";
+      return "資訊";
+    }
+
+    function addLog(tag, text) {
+      state.log.unshift({ tag, text });
+      if (state.log.length > 12) state.log.pop();
+      renderLog();
+    }
+    function addResult(text) {
+      state.results.unshift(text);
+      if (state.results.length > 6) state.results.pop();
+      renderResults();
+    }
+
+    // Lab modal
+    function openLabModal() {
+      modalTitle.textContent = "開立：抽血 / LAB";
+      modalBody.classList.add("grid");
+      modalBody.innerHTML = `
+        ${["CBC + Diff","Na","K","Cl","CO2 (HCO3)","BUN","Creatinine","Glucose","AST","ALT","ALP","T.Bili","PT/INR","aPTT","Amylase","Lipase","Procalcitonin","Blood culture","Urine culture","U/A","血乳酸 + 血培","ABG/VBG","Cardiac enzymes"].map((name,i)=>`
+          <label class="check-row"><input type="checkbox" data-name="${name}"><div><div style="font-weight:700;">${name}</div></div></label>
+        `).join("")}
+        <div style="grid-column:1/-1;">
+          <div class="order-meta" style="margin-bottom:6px;">你的判讀/備註（可留白）</div>
+          <textarea class="modal-note" id="modal-note" placeholder="例：懷疑敗血，優先乳酸、血培"></textarea>
+        </div>
+      `;
+      orderModal.style.display = "flex";
+      modalSubmit.onclick = () => {
+        const selected = Array.from(modalBody.querySelectorAll("input[type='checkbox']:checked")).map(el=>el.dataset.name);
+        const note = document.getElementById("modal-note").value.trim();
+        if (selected.length) {
+          addResult(`Lab 已送出：${selected.join("，")}${note ? "｜備註：" + note : ""}`);
+          orderDetail.textContent = `Lab：${selected.join("，")}`;
+        }
+        closeModal();
+      };
+    }
+
+    // History modal (shared)
+    function openHistoryModal() {
+      modalTitle.textContent = "開立：詢問 / HISTORY";
+      modalBody.classList.remove("grid");
+      modalBody.innerHTML = `
+        ${["問護理師：輸入/輸出、症狀變化","問病人：胸痛/胸悶/頭暈","查看 I/O 紀錄"].map((name)=>`
+          <label class="check-row"><input type="checkbox" data-name="${name}"><div><div style="font-weight:700;">${name}</div></div></label>
+        `).join("")}
+        <div>
+          <div class="order-meta" style="margin-bottom:6px;">輸入你想問的問題</div>
+          <textarea class="modal-note" id="modal-note" placeholder="例：過去 6h 入出量？有沒有胸痛、暈眩？"></textarea>
+        </div>
+      `;
+      orderModal.style.display = "flex";
+      modalSubmit.onclick = () => {
+        const selected = Array.from(modalBody.querySelectorAll("input[type='checkbox']:checked")).map(el=>el.dataset.name);
+        const note = document.getElementById("modal-note").value.trim();
+        if (selected.length) {
+          addLog("info", `詢問：${selected.join("，")}${note ? "｜問題：" + note : ""}`);
+          orderDetail.textContent = `HISTORY：${selected.join("，")}`;
+        }
+        closeModal();
+      };
+    }
+
+    function closeModal() { orderModal.style.display = "none"; }
+    modalClose.addEventListener("click", closeModal);
+    orderModal.addEventListener("click", (e)=>{ if(e.target===orderModal) closeModal(); });
+
+    // Vent modal
+    function openVentModal() {
+      ventModal.style.display = "flex";
+    }
+    function closeVent() { ventModal.style.display = "none"; }
+    ventClose.addEventListener("click", closeVent);
+    [ventFio2, ventPeep, ventRr, ventVt].forEach(input => {
+      input.addEventListener("input", () => {
+        ventFio2Val.textContent = ventFio2.value + "%";
+        ventPeepVal.textContent = ventPeep.value;
+        ventRrVal.textContent = ventRr.value;
+        ventVtVal.textContent = ventVt.value;
+      });
+    });
+    ventSave.addEventListener("click", () => {
+      state.support.vent = { mode: "VC", fio2: Number(ventFio2.value)/100, peep: Number(ventPeep.value), tv: Number(ventVt.value), rr: Number(ventRr.value) };
+      addLog("info", `呼吸器設定：FiO2 ${ventFio2.value}%，PEEP ${ventPeep.value}，RR ${ventRr.value}，Vt ${ventVt.value} ml/kg。`);
+      renderSupport();
+      closeVent();
+    });
+
+    // Pressor modal
+    function openPressorModal(agent) {
+      pendingPressor = agent;
+      pressorTitle.textContent = `${agent} 滴數`;
+      pressorRate.value = 0.05;
+      pressorRateVal.textContent = "0.05 μg/kg/min";
+      pressorModal.style.display = "flex";
+    }
+    function closePressor() { pressorModal.style.display = "none"; pendingPressor = null; }
+    pressorClose.addEventListener("click", closePressor);
+    pressorRate.addEventListener("input", () => {
+      pressorRateVal.textContent = `${Number(pressorRate.value).toFixed(2)} μg/kg/min`;
+    });
+    let pendingPressor = null;
+    pressorSave.addEventListener("click", () => {
+      if (!pendingPressor) return;
+      const rate = Number(pressorRate.value);
+      addLog("info", `${pendingPressor} ${rate.toFixed(2)} μg/kg/min 已設定。`);
+      state.support.pressor = `${pendingPressor} ${rate.toFixed(2)} μg/kg/min`;
+      renderSupport();
+      closePressor();
+    });
+
+    // Abx modal
+    function openAbxModal() { abxModal.style.display = "flex"; }
+    function closeAbx() { abxModal.style.display = "none"; }
+    abxClose.addEventListener("click", closeAbx);
+    abxSave.addEventListener("click", () => {
+      const choice = document.querySelector('input[name="abx"]:checked');
+      const note = document.getElementById("abx-note").value.trim();
+      if (choice) {
+        addLog("info", `抗生素：${choice.value} 已給。`);
+        addResult(`抗生素：${choice.value}${note ? "｜備註：" + note : ""}`);
+        state.support.antibiotics = choice.value;
+      }
+      closeAbx();
+    });
+
+    // Init
+    renderMonitor();
+    renderSupport();
+    renderLog();
+    renderResults();
+    renderOrders();
+  </script>
+</body>
+</html>

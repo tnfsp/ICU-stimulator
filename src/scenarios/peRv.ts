@@ -33,9 +33,11 @@ export const peRvScenario: ScenarioConfig = {
   effects: {
     "lab:ddimer": (s) => addResult(s, "D-dimer 升高。"),
     "lab:trop": (s) => addResult(s, "Trop 輕度升高，RV strain 可能。"),
+    "resp:o2:nrm": (s) => { s.support.o2 = "NRM 12L"; s.vitals.spo2 += 2; return s; },
+    "resp:o2:bipap": (s) => { s.support.o2 = "BiPAP"; s.vitals.spo2 += 2; return s; },
     "resp:intubate": (s) => { s.flags.intubated = true; s.support.o2 = "ETT"; s.vitals.spo2 += 3; return s; },
     "fluid:bolus": (s) => { s.flags.bigFluid = true; s.vitals.map -= 2; s.vitals.spo2 -= 1; s.log.unshift({ time: s.time, tag: "warn", text: "快速補液使 RV 壓力上升，血壓下降。" }); return s; },
-    "med:pressor:norepi": (s) => { s.support.pressor = "Norepi 滴定中"; s.vitals.map += 3; return s; },
+    "med:pressor:norepi": (s, rate=0.05) => { s.support.pressor = `Norepi ${rate.toFixed(2)}`; s.vitals.map += Math.round(rate*40); return s; },
   },
 };
 

@@ -34,7 +34,11 @@ export const sepsisScenario: ScenarioConfig = {
     "lab:lactate": (s) => addResult(s, "乳酸 4.2，血培送出。"),
     "med:abx": (s) => { s.flags.antibiotics = true; addResult(s, "廣譜抗生素已給。"); return s; },
     "fluid:bolus": (s) => { s.flags.bigFluid = true; s.vitals.map += 3; s.log.unshift({ time: s.time, tag: "info", text: "補液 500 mL。" }); return s; },
-    "med:pressor:norepi": (s) => { s.vitals.map += 5; s.support.pressor = "Norepi 滴定中"; return s; },
+    "med:pressor:norepi": (s, rate=0.05) => { s.vitals.map += Math.round(rate*40); s.support.pressor = `Norepi ${rate.toFixed(2)}`; return s; },
+    "med:pressor:epi": (s, rate=0.02) => { s.vitals.map += Math.round(rate*30); s.support.pressor = `Epi ${rate.toFixed(2)}`; return s; },
+    "resp:o2:nc": (s) => { s.support.o2 = "N/C"; s.vitals.spo2 += 1; return s; },
+    "resp:o2:nrm": (s) => { s.support.o2 = "NRM 12-15L"; s.vitals.spo2 += 3; return s; },
+    "resp:o2:bipap": (s) => { s.support.o2 = "BiPAP 12/6"; s.vitals.spo2 += 2; return s; },
     "resp:intubate": (s) => { s.flags.intubated = true; s.support.o2 = "ETT"; s.vitals.spo2 += 3; return s; },
   },
 };

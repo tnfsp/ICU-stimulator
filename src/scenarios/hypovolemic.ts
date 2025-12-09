@@ -32,7 +32,8 @@ export const hypovolemicScenario: ScenarioConfig = {
   effects: {
     "lab:hgb": (s) => addResult(s, "Hb 7.2，Hct 22%。"),
     "fluid:bolus": (s) => { s.flags.bigFluid = true; s.vitals.map += 6; s.vitals.sbp += 8; s.log.unshift({ time: s.time, tag: "good", text: "快速補液 500 mL，血壓回升。" }); return s; },
-    "med:pressor:norepi": (s) => { s.vitals.map += 2; s.support.pressor = "Norepi 滴定中"; return s; },
+    "med:pressor:norepi": (s, rate=0.05) => { s.vitals.map += Math.round(rate*30); s.support.pressor = `Norepi ${rate.toFixed(2)}`; return s; },
+    "resp:o2:nc": (s) => { s.support.o2 = "N/C 3L"; s.vitals.spo2 += 1; return s; },
   },
 };
 

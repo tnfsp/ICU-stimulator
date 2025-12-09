@@ -53,7 +53,7 @@ export type DriftRule = {
   condition?: (s: PatientState) => boolean;
 };
 
-export type EffectFn = (state: PatientState) => PatientState;
+export type EffectFn = (state: PatientState, payload?: any) => PatientState;
 
 export type EndingCondition = {
   label: "crash" | "death" | "improve";

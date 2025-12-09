@@ -15,10 +15,10 @@ export function applyDrift(state: PatientState, scenario: ScenarioConfig): Patie
   return next;
 }
 
-export function applyEffect(state: PatientState, effectId: string, scenario: ScenarioConfig): PatientState {
+export function applyEffect(state: PatientState, effectId: string, scenario: ScenarioConfig, payload?: any): PatientState {
   const fn = scenario.effects[effectId];
   if (!fn) return state;
-  let next = fn(state);
+  let next = fn(state, payload);
   next = clampVitals(next);
   return next;
 }

@@ -49,8 +49,8 @@ export default function HomePage() {
     setResults([]);
   };
 
-  const handleEffect = (effectId: string) => {
-    const next = applyEffect(structuredClone(state), effectId, currentScenario);
+  const handleEffect = (effectId: string, payload?: any) => {
+    const next = applyEffect(structuredClone(state), effectId, currentScenario, payload);
     const ending = checkEndings(next, currentScenario);
     setState(next);
     setLog(next.log);
@@ -151,6 +151,11 @@ export default function HomePage() {
                 onGeneric={(item) => {
                   addLog("info", `已執行：${item.label}`);
                   if (item.label.includes("大補液")) handleEffect("fluid:bolus");
+                  if (item.label.includes("鼻導管")) handleEffect("resp:o2:nc");
+                  if (item.label.includes("Simple mask")) handleEffect("resp:o2:simple");
+                  if (item.label.includes("Venturi")) handleEffect("resp:o2:venturi");
+                  if (item.label.includes("NRM")) handleEffect("resp:oxygen:nrm");
+                  if (item.label.includes("BiPAP")) handleEffect("resp:o2:bipap");
                 }}
               />
             ))}
@@ -174,7 +179,20 @@ export default function HomePage() {
 
       <LabModal open={labOpen} onClose={() => setLabOpen(false)} onSubmit={(items, note) => { if (items.length) addResult(`Lab 已送出：${items.join("，")}${note ? "｜備註：" + note : ""}`); setLabOpen(false); }} />
       <AbxModal open={abxOpen} onClose={() => setAbxOpen(false)} onSubmit={(choice, note) => { addLog("info", `抗生素：${choice} 已給。`); addResult(`抗生素：${choice}${note ? "｜備註：" + note : ""}`); handleEffect("med:abx"); }} />
-      <PressorModal open={pressorOpen} agent={pendingPressor} onClose={() => { setPressorOpen(false); setPendingPressor(null); }} onSubmit={(rate) => { addLog("info", `${pendingPressor} ${rate.toFixed(2)} 已設定。`); if (pendingPressor) handleEffect(`med:pressor:${pendingPressor.toLowerCase()}`); }} />
+      <PressorModal
+        open={pressorOpen}
+        agent={pendingPressor}
+        onClose={() => { setPressorOpen(false); setPendingPressor(null); }}
+        onSubmit={(rate) => {
+          addLog("info", `${pendingPressor} ${rate.toFixed(2)} 已設定。`);
+          if (pendingPressor === "Dobutamine" || pendingPressor === "Milrinone") {
+            handleEffect(`med:inotrope:${pendingPressor.toLowerCase()}`, rate);
+          } else if (pendingPressor) {
+            const key = pendingPressor === "Vasopressin" ? "med:pressor:vaso" : `med:pressor:${pendingPressor.toLowerCase()}`;
+            handleEffect(key, rate);
+          }
+        }}
+      />
       <VentModal open={ventOpen} onClose={() => setVentOpen(false)} onSubmit={(settings) => { addLog("info", `呼吸器設定：FiO2 ${settings.fio2}，PEEP ${settings.peep}，RR ${settings.rr}，Vt ${settings.tv}`); setVentOpen(false); handleEffect("resp:intubate"); }} />
     </main>
   );

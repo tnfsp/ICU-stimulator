@@ -53,26 +53,36 @@ export const cardiogenicMimicSepsis: ScenarioConfig = {
       s.results.unshift("抗生素已給。");
       return s;
     },
-    "med:pressor:norepi": (s) => {
+    "med:pressor:norepi": (s, rate = 0.05) => {
       s.support.pressor = "Norepi 滴定中";
-      s.vitals.map += 4;
-      s.vitals.sbp += 6;
-      s.vitals.dbp += 3;
+      s.vitals.map += Math.round(rate * 40);
+      s.vitals.sbp += Math.round(rate * 60);
+      s.vitals.dbp += Math.round(rate * 30);
       s.log.unshift({ time: s.time, tag: "info", text: "Norepi 調高。" });
       return s;
     },
-    "med:pressor:epi": (s) => {
+    "med:pressor:epi": (s, rate = 0.02) => {
       s.support.pressor = "Epinephrine 滴定中";
-      s.vitals.map += 3;
+      s.vitals.map += Math.round(rate * 30);
       s.vitals.hr += 2;
       s.log.unshift({ time: s.time, tag: "info", text: "Epinephrine 上線。" });
       return s;
     },
-    "med:inotrope:dobutamine": (s) => {
+    "med:pressor:vaso": (s, rate = 0.03) => {
+      s.support.pressor = `Vaso ${rate.toFixed(2)} u/min`;
+      s.vitals.map += Math.round(rate * 50);
+      return s;
+    },
+    "med:inotrope:dobutamine": (s, rate = 5) => {
       s.support.inotrope = "Dobutamine 滴定中";
-      s.vitals.map += 2;
-      s.vitals.sbp += 3;
+      s.vitals.map += 2 + Math.round(rate * 0.4);
+      s.vitals.sbp += 3 + Math.round(rate * 0.6);
       s.log.unshift({ time: s.time, tag: "good", text: "Dobutamine 啟用。" });
+      return s;
+    },
+    "med:inotrope:milrinone": (s, rate = 0.25) => {
+      s.support.inotrope = "Milrinone 滴定中";
+      s.vitals.map -= Math.round(rate * 1);
       return s;
     },
     "resp:intubate": (s) => {
@@ -83,11 +93,11 @@ export const cardiogenicMimicSepsis: ScenarioConfig = {
       s.log.unshift({ time: s.time, tag: "info", text: "已插管並上呼吸器。" });
       return s;
     },
-    "resp:oxygen:nrm": (s) => {
-      s.support.o2 = "NRM 12-15L";
-      s.vitals.spo2 += 2;
-      return s;
-    },
+    "resp:o2:nc": (s) => { s.support.o2 = "N/C 2-4L"; s.vitals.spo2 += 1; return s; },
+    "resp:o2:simple": (s) => { s.support.o2 = "Simple mask 6-8L"; s.vitals.spo2 += 1; return s; },
+    "resp:o2:venturi": (s) => { s.support.o2 = "Venturi 40%"; s.vitals.spo2 += 2; return s; },
+    "resp:oxygen:nrm": (s) => { s.support.o2 = "NRM 12-15L"; s.vitals.spo2 += 2; return s; },
+    "resp:o2:bipap": (s) => { s.support.o2 = "BiPAP 12/6 FiO2 60%"; s.vitals.spo2 += 2; return s; },
     "fluid:bolus": (s) => {
       s.flags.bigFluid = true;
       s.vitals.map -= 2;
